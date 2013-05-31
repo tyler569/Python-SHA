@@ -2,6 +2,13 @@ import sys
 
 
 def init_vars():
+    '''
+    Initialises variables for the SHA256 hash algorithm.
+
+    Takes message as input
+
+    Returns tuple - (hash_vars, ROUND_CONSTS)
+    '''
     hash_vars = [
         0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
         0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19
@@ -26,8 +33,16 @@ def init_vars():
     ]
     return hash_vars, ROUND_CONSTS
 
-def in2chunks():
-    message = ' '.join(sys.argv[1:])
+def in2chunks(message):
+    '''
+    Converts command line input to SHA256 chunks.
+
+    Takes command line (concatinates all arguments [1:] with spaces
+    to mirror how they are input.  Can be given all as one argument as well
+
+    Returns array of SHA256 chunks corresponding to input data
+    as binary string
+    '''
     message_bin = ''
     try:
         message_bin = bin(int(message))
@@ -51,13 +66,28 @@ def in2chunks():
     else:
         chunks = [chunk_bin]
     return chunks
-    
+
 def fill_bin(val, num_bits):
+    '''
+    Fills in the dropped 0's for binary numbers
+
+    Takes val as string from bin() function - format '0b...'
+
+    Returns same number but with n 0's added such that len(input + n*'0')
+    is == num_bits.  Function also snips '0b' from out
+    '''
     bin_out = bin(val)[2:]
     bin_out = (num_bits - len(bin_out)) * '0' + bin_out
     return bin_out
     
 def words(chunk_bin):
+    '''
+    Given an SHA256 chunk, function generated the word array corresponding to it
+
+    Takes SHA256 chunk as binary string
+
+    Returns array of 64 binary words as strings for use in SHA256 calculation
+    '''
     w = [0 for i in range(64)]
     for i in range(16):
         start = 32*i
@@ -70,21 +100,35 @@ def words(chunk_bin):
     return w
     
 def ror(num, val):
+    '''
+    Binary right rotate
+
+    Takes number to rotate (num) as int and places to rotate (val) as int
+
+    Returns int - rotated number
+    '''
     pre = (num % 2 ** val) * 2**(32 - val) 
     post = num >> val
     return pre + post
     
-def main():
-    chunks = in2chunks()
-    h, ROUND_CONSTS = init_vars()
+def sha256hash(message):
+    '''
+    Main loop of the SHA256 hash algorithm
+
+    Takes data as input
+
+    Returns hash digest as hex string without '0x'
+    '''
+    chunks = in2chunks(message)
+    h, k = init_vars()
     for chunk in chunks:
         xs = h[:]
         w = words(chunk)
         for i in range(64):
             S1 = ror(xs[4], 6) ^ ror(xs[4], 11) ^ ror(xs[4], 25)
             ch = (xs[4] & xs[5]) ^ (~xs[4] & xs[6])
-            temp = (xs[7] + S1 + ch + ROUND_CONSTS[i] + w[i]) % 2**32
-            xs[3] = (xs[3] + temp) % 2**32            
+            temp = (xs[7] + S1 + ch + k[i] + w[i]) % 2**32
+            xs[3] = (xs[3] + temp) % 2**32
             S0 = ror(xs[0], 2) ^ ror(xs[0], 13) ^ ror(xs[0], 22)
             maj = (xs[0] & xs[1]) ^ (xs[0] & xs[2]) ^ (xs[1] & xs[2])
             temp = (temp + S0 + maj) % 2**32
@@ -93,6 +137,11 @@ def main():
             # print(str(i) + ': ' + ' '.join([hex(int(i))[2:] for i in xs]))
         h = [(h[i] + xs[i]) % 2**32 for i in range(8)]
     digest = ''.join([str((8 - len(hex(i)[2:]))*'0' + hex(i)[2:]) for i in h])
+    return(digest)
+    
+def main():
+    hashinput = ' '.join(sys.argv[1:])
+    digest = sha256hash(hashinput)
     digest = '0x' + digest#.upper()
     print(digest)
     
