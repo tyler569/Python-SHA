@@ -149,7 +149,10 @@ def sha2hash(message, bits):
     
 def main():
     bits = int(sys.argv[1])
-    message = sys.argv[2]
+    try:
+        message = sys.argv[2]
+    except IndexError:
+        message = ''
     digest = sha2hash(message, bits)
     digest = '0x' + digest#.upper()
     print(digest)
