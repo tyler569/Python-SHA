@@ -1,7 +1,6 @@
 import sys
 
-
-def init_vars():
+def init_vars(bits):
     '''
     Initialises variables for the SHA256 hash algorithm.
 
@@ -9,10 +8,16 @@ def init_vars():
 
     Returns tuple - (hash_vars, ROUND_CONSTS)
     '''
-    hash_vars = [
-        0xc1059ed8, 0x367cd507, 0x3070dd17, 0xf70e5939,
-        0xffc00b31, 0x68581511, 0x64f98fa7, 0xbefa4fa4
-    ]
+    if bits == 224:
+        hash_vars = [
+            0xc1059ed8, 0x367cd507, 0x3070dd17, 0xf70e5939,
+            0xffc00b31, 0x68581511, 0x64f98fa7, 0xbefa4fa4
+        ]
+    elif bits == 256:
+        hash_vars = [
+            0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
+            0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19
+        ]
     ROUND_CONSTS = [
         0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
         0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
@@ -32,8 +37,8 @@ def init_vars():
         0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
     ]
     return hash_vars, ROUND_CONSTS
-
-def in2chunks(message):
+    
+def msg2chunks(message):
     '''
     Converts command line input to SHA256 chunks.
 
@@ -44,20 +49,17 @@ def in2chunks(message):
     as binary string
     '''
     message_bin = ''
-    try:
-        message_bin = bin(int(message))
-    except:
-        for i in message.encode():
-            message_bin += fill_bin(i, 8)
+
+    for i in message.encode():
+        message_bin += fill_0s(bin(i)[2:], 8)
     length = len(message_bin)
     message_bin += '1' # Appended bit
     chunks = []
 
     pad_0s = '0' * (512 - (len(message_bin) + 64) % 512)
     chunk_bin = message_bin + pad_0s
-    length_bin = bin(length)[2:]
-    pad_0s = (64 - len(length_bin)) * '0'
-    chunk_bin += (pad_0s + length_bin)
+    length_bin = fill_0s(bin(length)[2:], 64)
+    chunk_bin += length_bin
     chunks = []
     
     if len(chunk_bin) > 512:
@@ -66,20 +68,19 @@ def in2chunks(message):
     else:
         chunks = [chunk_bin]
     return chunks
-
-def fill_bin(val, num_bits):
+	
+def fill_0s(val, places):
     '''
     Fills in the dropped 0's for binary numbers
 
     Takes val as string from bin() function - format '0b...'
 
     Returns same number but with n 0's added such that len(input + n*'0')
-    is == num_bits.  Function also snips '0b' from out
+    is == places.  Function also snips '0b' from out
     '''
-    bin_out = bin(val)[2:]
-    bin_out = (num_bits - len(bin_out)) * '0' + bin_out
-    return bin_out
-    
+    out = (places - len(val)) * '0' + val
+    return out
+	
 def words(chunk_bin):
     '''
     Given an SHA256 chunk, function generated the word array corresponding to it
@@ -98,7 +99,7 @@ def words(chunk_bin):
         s1 = ror(w[i-2], 17) ^ ror(w[i-2], 19) ^ (w[i-2] >> 10)
         w[i] = (w[i-16] + s0 + w[i-7] + s1) % 2**32
     return w
-    
+	
 def ror(num, val):
     '''
     Binary right rotate
@@ -110,17 +111,20 @@ def ror(num, val):
     pre = (num % 2 ** val) * 2**(32 - val) 
     post = num >> val
     return pre + post
-    
-def sha224hash(message):
+	
+def sha2hash(message, bits):
     '''
     Main loop of the SHA256 hash algorithm
 
-    Takes data as input
+    Takes data and digest bits as input, dies if bits not in (224, 256)
 
     Returns hash digest as hex string without '0x'
     '''
-    chunks = in2chunks(message)
-    h, k = init_vars()
+    if not bits in (224, 256):
+        print('Only SHA224 and SHA256 are supported')
+        sys.exit()
+    chunks = msg2chunks(message)
+    h, k = init_vars(bits)
     for chunk in chunks:
         xs = h[:]
         w = words(chunk)
@@ -136,12 +140,17 @@ def sha224hash(message):
             xs = [temp] + [xs[i-1] for i in range(1, 8)]
             # print(str(i) + ': ' + ' '.join([hex(int(i))[2:] for i in xs]))
         h = [(h[i] + xs[i]) % 2**32 for i in range(8)]
-    digest = ''.join([str((8 - len(hex(i)[2:]))*'0' + hex(i)[2:]) for i in h[:7]])
+    if bits == 256:
+        digest = ''.join([fill_0s(hex(i)[2:],8) for i in h])
+    elif bits == 224:
+        digest = ''.join([fill_0s(hex(i)[2:],8) for i in h[:7]])
     return(digest)
+
     
 def main():
-    hashinput = ' '.join(sys.argv[1:])
-    digest = sha224hash(hashinput)
+    bits = int(sys.argv[1])
+    message = sys.argv[2]
+    digest = sha2hash(message, bits)
     digest = '0x' + digest#.upper()
     print(digest)
     
