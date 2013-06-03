@@ -140,7 +140,6 @@ def _msg2chunks(message, bits):
         message_bin += fill_0s(bin(i)[2:], 8)
     length = len(message_bin)
     message_bin += '1' # Appended bit
-    chunks = []
     
     if bits in (224, 256):
         chunklen = 512
@@ -206,7 +205,7 @@ def ror(num, val, mod):
     post = num >> val
     return pre + post
 	
-def sha2hash(message, bits, sh):
+def sha2hash(message, bits):
     '''
     Main loop of the SHA2 hash algorithm
 
@@ -214,9 +213,15 @@ def sha2hash(message, bits, sh):
 
     Returns hash digest as int
     '''
-    if not bits in (224, 256, 384, 512):
+    if not bits in ('224', '256', '384', '512', '512/224', '512/256'):
         print('Only standard SHA2 functions are supported')
         sys.exit()
+    if bits in ('512/224', '512/256'):
+        sh = 512 - int(bits[4:])
+        bits = 512
+    else:
+        bits = int(bits)
+        sh = {224:32, 256:0, 384:128, 512:0}[bits]
     if bits in (224, 256):
         rounds = 64
         mod = 32
@@ -246,17 +251,12 @@ def sha2hash(message, bits, sh):
     
 def main():
     bits = sys.argv[1]
-    if bits in ('512/224', '512/256'):
-        sh = 512 - int(bits[4:])
-        bits = 512
-    else:
-        bits = int(bits)
-        sh = {224:32, 256:0, 384:128, 512:0}[bits]
     try:
         message = sys.argv[2]
-    except IndexError:
+    except:
         message = ''
-    digest = sha2hash(message, bits, sh)
+
+    digest = sha2hash(message, bits)
     print(hex(digest))
     
     
