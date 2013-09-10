@@ -1,4 +1,3 @@
-import sys
 
 
 def _init_vars():
@@ -25,13 +24,13 @@ def _msg2chunks(message):
     message_bin = ''
 
     for i in message.encode():
-        message_bin += fill_0s(bin(i)[2:], 8)
+        message_bin += _fill_0s(bin(i)[2:], 8)
     length = len(message_bin)
     message_bin += '1' # Appended bit
     
     pad_0s = '0' * (512 - (len(message_bin) + 64) % 512)
     chunk_bin = message_bin + pad_0s
-    length_bin = fill_0s(bin(length)[2:], 64)
+    length_bin = _fill_0s(bin(length)[2:], 64)
     chunk_bin += length_bin
     chunks = []
     
@@ -42,7 +41,7 @@ def _msg2chunks(message):
         chunks = [chunk_bin]
     return chunks
     
-def fill_0s(val, places):
+def _fill_0s(val, places):
     '''
     Fills in the dropped 0's for binary numbers
 
@@ -69,10 +68,10 @@ def _words(chunk_bin):
         end = 32*(i+1)
         w[i] = int(chunk_bin[start:end], 2)
     for i in range(16, 80):
-        w[i] = rol(w[i-3] ^ w[i-8] ^ w[i-14] ^ w[i-16], 1)
+        w[i] = _rol(w[i-3] ^ w[i-8] ^ w[i-14] ^ w[i-16], 1)
     return w
     
-def rol(num, val):
+def _rol(num, val):
     '''
     Binary left rotate
 
@@ -87,7 +86,7 @@ def rol(num, val):
     out = pre + post
     return out
     
-def sha1hash(message):
+def _sha1hash(message):
     '''
     Main loop of the SHA1 hash algorithm
 
@@ -109,21 +108,9 @@ def sha1hash(message):
                 f = (xs[1] & xs[2]) | (xs[1] & xs[3]) | (xs[2] & xs[3])
             elif i in range(60, 80):
                 f = xs[1] ^ xs[2] ^ xs[3]
-            temp = (rol(xs[0], 5) + f + xs[4] + k[i//20] + w[i]) % 2**32
-            xs = [temp, xs[0], rol(xs[1], 30), xs[2], xs[3]]
+            temp = (_rol(xs[0], 5) + f + xs[4] + k[i//20] + w[i]) % 2**32
+            xs = [temp, xs[0], _rol(xs[1], 30), xs[2], xs[3]]
             #print(str(i) + ': ' + ' '.join([hex(int(i))[2:] for i in xs])) ##
         h = [(h[i] + xs[i]) % 2**32 for i in range(5)]
     digest = sum([h[i] << 32 * (4-i) for i in range(5)])
     return(digest)
-
-def main():
-    try:
-        message = sys.argv[1]
-    except IndexError:
-        message = ''
-    digest = sha1hash(message)
-    print(hex(digest))
-
-if __name__ == '__main__':
-    main()
-	

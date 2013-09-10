@@ -1,4 +1,3 @@
-import sys
 
 
 def _init_vars(bits, sh):
@@ -130,14 +129,18 @@ def _msg2chunks(message, bits):
     Takes message as str and bits as selection of function, eg:
         224  means for SHA224
         256  means for SHA256
+        etc.
 
     Returns array of SHA2 chunks corresponding to input data and function
     as binary string
     '''
-    message_bin = ''
+    if type(message) is int:
+        message_bin = bin(message)[2:]
+    else:
+        message_bin = ''
+        for i in message.encode():
+            message_bin += _fill_0s(bin(i)[2:], 8)
 
-    for i in message.encode():
-        message_bin += fill_0s(bin(i)[2:], 8)
     length = len(message_bin)
     message_bin += '1' # Appended bit
     
@@ -150,7 +153,7 @@ def _msg2chunks(message, bits):
     
     pad_0s = '0' * (chunklen - (len(message_bin) + lenlen) % chunklen)
     chunk_bin = message_bin + pad_0s
-    length_bin = fill_0s(bin(length)[2:], lenlen)
+    length_bin = _fill_0s(bin(length)[2:], lenlen)
     chunk_bin += length_bin
     chunks = []
     
@@ -159,9 +162,10 @@ def _msg2chunks(message, bits):
             chunks.append(chunk_bin[chunklen*i:chunklen*(i+1)])
     else:
         chunks = [chunk_bin]
+
     return chunks
 	
-def fill_0s(val, places):
+def _fill_0s(val, places):
     '''
     Fills in the dropped 0's for binary numbers
 
@@ -188,12 +192,12 @@ def _words(chunk_bin, ct, mod, C):
         end = mod*(i+1)
         w[i] = int(chunk_bin[start:end], 2)
     for i in range(16, ct):
-        s0 = ror(w[i-15], C[2][0], mod)^ror(w[i-15], C[2][1], mod)^(w[i-15] >> C[2][2])
-        s1 = ror(w[i-2], C[3][0], mod)^ror(w[i-2], C[3][1], mod)^(w[i-2] >> C[3][2])
+        s0 = _ror(w[i-15], C[2][0], mod)^_ror(w[i-15], C[2][1], mod)^(w[i-15] >> C[2][2])
+        s1 = _ror(w[i-2], C[3][0], mod)^_ror(w[i-2], C[3][1], mod)^(w[i-2] >> C[3][2])
         w[i] = (w[i-16] + s0 + w[i-7] + s1) % 2**mod
     return w
 	
-def ror(num, val, mod):
+def _ror(num, val, mod):
     '''
     Binary right rotate
 
@@ -205,7 +209,7 @@ def ror(num, val, mod):
     post = num >> val
     return pre + post
 	
-def sha2hash(message, bits):
+def _sha2hash(message, bits):
     '''
     Main loop of the SHA2 hash algorithm
 
@@ -234,31 +238,16 @@ def sha2hash(message, bits):
         xs = h[:]
         w = _words(chunk, rounds, mod, C)
         for i in range(rounds):
-            S1 = ror(xs[4], C[1][0], mod)^ror(xs[4], C[1][1], mod)^ror(xs[4], C[1][2], mod)
+            S1 = _ror(xs[4], C[1][0], mod)^_ror(xs[4], C[1][1], mod)^_ror(xs[4], C[1][2], mod)
             ch = (xs[4] & xs[5])^(~xs[4] & xs[6])
             temp = (xs[7] + S1 + ch + k[i] + w[i]) % 2**mod
             xs[3] = (xs[3] + temp) % 2**mod
-            S0 = ror(xs[0], C[0][0], mod)^ror(xs[0], C[0][1], mod)^ror(xs[0], C[0][2], mod)
+            S0 = _ror(xs[0], C[0][0], mod)^_ror(xs[0], C[0][1], mod)^_ror(xs[0], C[0][2], mod)
             maj = (xs[0] & xs[1])^(xs[0] & xs[2])^(xs[1] & xs[2])
             temp = (temp + S0 + maj) % 2**mod
             
             xs = [temp] + [xs[i-1] for i in range(1, 8)]
-            # print(str(i) + ': ' + ' '.join([hex(int(i))[2:] for i in xs]) + '\n') ##
+            # print(str(i) + ': ' + ' '.join([hex(int(i))[2:] for i in xs])) ##
         h = [(h[i] + xs[i]) % 2**mod for i in range(8)]
     digest = sum([h[i] << mod * (7-i) for i in range(8)]) >> sh
     return(digest)
-
-    
-def main():
-    bits = sys.argv[1]
-    try:
-        message = sys.argv[2]
-    except:
-        message = ''
-
-    digest = sha2hash(message, bits)
-    print(hex(digest))
-    
-    
-if __name__ == '__main__':
-    main()
