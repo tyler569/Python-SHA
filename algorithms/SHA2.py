@@ -134,12 +134,9 @@ def _msg2chunks(message, bits):
     Returns array of SHA2 chunks corresponding to input data and function
     as binary string
     '''
-    if type(message) is int:
-        message_bin = bin(message)[2:]
-    else:
-        message_bin = ''
-        for i in message.encode():
-            message_bin += bin(i)[2:].zfill(8)
+    message_bin = ''
+    for i in message.encode():
+    message_bin += bin(i)[2:].zfill(8)
 
     length = len(message_bin)
     message_bin += '1' # Appended bit

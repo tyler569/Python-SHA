@@ -17,7 +17,14 @@ class InputError(RuntimeError):
 
 ######## DOO IT ########
 
-def hash(bits, message):
+def hash(bits, message, inptype=str, encoding='UTF-8'):
+
+    if not (inptype in (str, bytes) and
+            encoding in ('UTF-8', 'bin', 'oct', 'hex')):
+
+    	raise InputError('Encoding or type not supported')
+
+
 
     if bits in ('1', '224', '256', '384', '512', '512/224', '512/256'):
         if bits == '1':
