@@ -24,13 +24,13 @@ def _msg2chunks(message):
     message_bin = ''
 
     for i in message.encode():
-        message_bin += _fill_0s(bin(i)[2:], 8)
+        message_bin += bin(i)[2:].zfill(8)
     length = len(message_bin)
     message_bin += '1' # Appended bit
     
     pad_0s = '0' * (512 - (len(message_bin) + 64) % 512)
     chunk_bin = message_bin + pad_0s
-    length_bin = _fill_0s(bin(length)[2:], 64)
+    length_bin = bin(length)[2:].zfill(64)
     chunk_bin += length_bin
     chunks = []
     
@@ -40,18 +40,6 @@ def _msg2chunks(message):
     else:
         chunks = [chunk_bin]
     return chunks
-    
-def _fill_0s(val, places):
-    '''
-    Fills in the dropped 0's for binary numbers
-
-    Takes val as str
-
-    Returns same number but with n 0's added such that len(input + n*'0')
-    is == places.
-    '''
-    out = ((places - len(val)) * '0') + val
-    return out
 
 def _words(chunk_bin):
     '''
@@ -110,7 +98,7 @@ def _sha1hash(message):
                 f = xs[1] ^ xs[2] ^ xs[3]
             temp = (_rol(xs[0], 5) + f + xs[4] + k[i//20] + w[i]) % 2**32
             xs = [temp, xs[0], _rol(xs[1], 30), xs[2], xs[3]]
-            #print(str(i) + ': ' + ' '.join([hex(int(i))[2:] for i in xs])) ##
+            # print(str(i).zfill(2) + ': ' + ' '.join([hex(int(i))[2:].zfill(8) for i in xs])) ##
         h = [(h[i] + xs[i]) % 2**32 for i in range(5)]
     digest = sum([h[i] << 32 * (4-i) for i in range(5)])
     return(digest)

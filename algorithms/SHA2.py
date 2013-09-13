@@ -2,7 +2,7 @@
 
 def _init_vars(bits, sh):
     '''
-    Initialises variables for the SHA256 hash algorithm.
+    Initialises variables for the SHA2 hash algorithms.
 
     Takes message as input
 
@@ -139,7 +139,7 @@ def _msg2chunks(message, bits):
     else:
         message_bin = ''
         for i in message.encode():
-            message_bin += _fill_0s(bin(i)[2:], 8)
+            message_bin += bin(i)[2:].zfill(8)
 
     length = len(message_bin)
     message_bin += '1' # Appended bit
@@ -153,7 +153,7 @@ def _msg2chunks(message, bits):
     
     pad_0s = '0' * (chunklen - (len(message_bin) + lenlen) % chunklen)
     chunk_bin = message_bin + pad_0s
-    length_bin = _fill_0s(bin(length)[2:], lenlen)
+    length_bin = bin(length)[2:].zfill(lenlen)
     chunk_bin += length_bin
     chunks = []
     
@@ -162,20 +162,8 @@ def _msg2chunks(message, bits):
             chunks.append(chunk_bin[chunklen*i:chunklen*(i+1)])
     else:
         chunks = [chunk_bin]
-
+        
     return chunks
-	
-def _fill_0s(val, places):
-    '''
-    Fills in the dropped 0's for binary numbers
-
-    Takes val as string from bin() function - format '0b...'
-
-    Returns same number but with n 0's added such that len(input + n*'0')
-    is == places.  Function also snips '0b' from out
-    '''
-    out = ((places - len(val)) * '0') + val
-    return out
 	
 def _words(chunk_bin, ct, mod, C):
     '''
@@ -247,7 +235,7 @@ def _sha2hash(message, bits):
             temp = (temp + S0 + maj) % 2**mod
             
             xs = [temp] + [xs[i-1] for i in range(1, 8)]
-            # print(str(i) + ': ' + ' '.join([hex(int(i))[2:] for i in xs])) ##
+            #  print(str(i).zfill(2) + ': ' + ' '.join([hex(int(i))[2:].zfill(8) for i in xs])) ##
         h = [(h[i] + xs[i]) % 2**mod for i in range(8)]
     digest = sum([h[i] << mod * (7-i) for i in range(8)]) >> sh
     return(digest)
