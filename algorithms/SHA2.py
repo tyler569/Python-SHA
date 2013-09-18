@@ -136,7 +136,7 @@ def _msg2chunks(message, bits):
     '''
     message_bin = ''
     for i in message.encode():
-    message_bin += bin(i)[2:].zfill(8)
+        message_bin += bin(i)[2:].zfill(8)
 
     length = len(message_bin)
     message_bin += '1' # Appended bit
@@ -161,7 +161,7 @@ def _msg2chunks(message, bits):
         chunks = [chunk_bin]
         
     return chunks
-	
+    
 def _words(chunk_bin, ct, mod, C):
     '''
     Given an SHA chunk and information about what function is being called,
@@ -181,7 +181,7 @@ def _words(chunk_bin, ct, mod, C):
         s1 = _ror(w[i-2], C[3][0], mod)^_ror(w[i-2], C[3][1], mod)^(w[i-2] >> C[3][2])
         w[i] = (w[i-16] + s0 + w[i-7] + s1) % 2**mod
     return w
-	
+    
 def _ror(num, val, mod):
     '''
     Binary right rotate
@@ -193,7 +193,7 @@ def _ror(num, val, mod):
     pre = (num % 2 ** val) * 2**(mod - val) 
     post = num >> val
     return pre + post
-	
+    
 def _sha2hash(message, bits):
     '''
     Main loop of the SHA2 hash algorithm

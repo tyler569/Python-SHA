@@ -12,7 +12,7 @@ def _init_vars():
     ]
     return hash_vars, ROUND_CONSTS
 
-def _msg2chunks(message):
+def _msg2chunks(message, leading0s):
     '''
     Converts message input to SHA1 chunks.
     
@@ -21,27 +21,31 @@ def _msg2chunks(message):
     Returns array of SHA1 chunks corresponding to input data and function
     as binary string
     '''
-    message_bin = ''
 
-    for i in message.encode():
-        message_bin += bin(i)[2:].zfill(8)
-    length = len(message_bin)
-    message_bin += '1' # Appended bit
-    
-    pad_0s = '0' * (512 - (len(message_bin) + 64) % 512)
-    chunk_bin = message_bin + pad_0s
-    length_bin = bin(length)[2:].zfill(64)
-    chunk_bin += length_bin
-    chunks = []
-    
-    if len(chunk_bin) > 512:
-        for i in range(int(len(chunk_bin) / 512)):
-            chunks.append(chunk_bin[512*i:512*(i+1)])
+    message_len = message.bit_length() + leading0s
+    if message_len > (1<<64) - 1:
+        raise RuntimeError('Input too large')
+    message <<= 1; message += 1  #append '1' to the message4
+    message_len += 1
+    message <<= 512 - (message_len % 512)
+    if message_len % 512 > 448:
+        message <<= 512
+    message += message_len - 1
+    message_len = message.bit_length() + leading0s
+
+    if (message_len/512) % 1 != 0:
+        raise RuntimeError('Chunk had bad length')
+
+    if message_len > 448:
+        chunks = [(message >> (512*i)) & ((1<<512) - 1) for i in range(int(message_len/512))]
+        chunks.reverse()
     else:
-        chunks = [chunk_bin]
+        chunks = [message]
+    print(hex(chunks[0]))
     return chunks
 
-def _words(chunk_bin):
+
+def _words(chunk):
     '''
     Given an SHA1 chunk and information about what function is being called,
     function generated the word array corresponding to it
@@ -52,9 +56,8 @@ def _words(chunk_bin):
     '''
     w = [0 for i in range(80)]
     for i in range(16):
-        start = 32*i
-        end = 32*(i+1)
-        w[i] = int(chunk_bin[start:end], 2)
+        mask = 0xffffffff << (512-32*(i+1))
+        w[i] = (chunk & mask) >> (512-32*(i+1))
     for i in range(16, 80):
         w[i] = _rol(w[i-3] ^ w[i-8] ^ w[i-14] ^ w[i-16], 1)
     return w
@@ -74,7 +77,7 @@ def _rol(num, val):
     out = pre + post
     return out
     
-def _sha1hash(message):
+def _sha1hash(message, leading0s):
     '''
     Main loop of the SHA1 hash algorithm
 
@@ -82,7 +85,7 @@ def _sha1hash(message):
 
     Returns hash digest as int
     '''
-    chunks = _msg2chunks(message)
+    chunks = _msg2chunks(message, leading0s)
     h, k = _init_vars()
     for chunk in chunks:
         xs = h[:]

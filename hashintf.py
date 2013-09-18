@@ -4,31 +4,30 @@ import algorithms.SHA2 as SHA2
 class InputError(RuntimeError):
     pass
 
-##CONVERT WHOLE THING TO ACCEPT INTS INSTEAD< ITS BETTER -
-##PERHAPS MAP ALGOS TO ARBITRARY VALUES INSTEAD OF BIT LENGTH
-#EG
-##MD5 - 0
-##SHA1 - 1
-##SHA2 - 2
-###SHA224 - 2.1
-###SHA256 - 2.2
+#determine and pass leading0s here
 
-#ETC.
+def hash(bits, message):
 
-######## DOO IT ########
-
-def hash(bits, message, inptype=str, encoding='UTF-8'):
-
-    if not (inptype in (str, bytes) and
-            encoding in ('UTF-8', 'bin', 'oct', 'hex')):
-
-    	raise InputError('Encoding or type not supported')
-
+    if type(message) is str:
+        print(message)
+        message = repr(message)
+        print(message)
+        m = message.encode()
+        message = 0
+        for i in m:
+            message <<= 8
+            message += i
+        i = 0
+        leading0s = 0
+        while leading0s == 8*i:
+            leading0s += 8 - m[0].bit_length()
+            i += 1
+        print(leading0s)
 
 
     if bits in ('1', '224', '256', '384', '512', '512/224', '512/256'):
         if bits == '1':
-            digest = SHA1._sha1hash(message)
+            digest = SHA1._sha1hash(message, leading0s)
         else:
             digest = SHA2._sha2hash(message, bits)
 
