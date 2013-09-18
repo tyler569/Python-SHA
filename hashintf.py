@@ -4,14 +4,17 @@ import algorithms.SHA2 as SHA2
 class InputError(RuntimeError):
     pass
 
-#determine and pass leading0s here
+_valid_algorithms = [
+    'SHA1', 'SHA224', 'SHA256', 'SHA384', 'SHA512', 'SHA512/224',
+    'SHA512/256'
+]
 
-def hash(bits, message):
+def valid_algorithms():
+    return _valid_algorithms
 
+def hash(algo, message):
     if type(message) is str:
-        print(message)
         message = repr(message)
-        print(message)
         m = message.encode()
         message = 0
         for i in m:
@@ -22,15 +25,14 @@ def hash(bits, message):
         while leading0s == 8*i:
             leading0s += 8 - m[0].bit_length()
             i += 1
-        print(leading0s)
+    else:
+        raise InputError('Message is not string')
 
-
-    if bits in ('1', '224', '256', '384', '512', '512/224', '512/256'):
-        if bits == '1':
-            digest = SHA1._sha1hash(message, leading0s)
-        else:
-            digest = SHA2._sha2hash(message, bits)
-
+    if algo in _valid_algorithms:
+        if algo == 'SHA1':
+            digest = SHA1._sha1hash((message, leading0s))
+        elif algo.startswith('SHA'):
+            digest = SHA2._sha2hash((message, leading0s), algo)
         return(digest)
     else:
         raise InputError('Algorithm nonexistant or unimplemented')

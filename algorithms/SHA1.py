@@ -12,16 +12,16 @@ def _init_vars():
     ]
     return hash_vars, ROUND_CONSTS
 
-def _msg2chunks(message, leading0s):
+def _msg2chunks(message_):
     '''
     Converts message input to SHA1 chunks.
     
-    Takes message as str
+    Input is message in form (message, leading0s)
+    message and leading0s are ints
 
-    Returns array of SHA1 chunks corresponding to input data and function
-    as binary string
+    Outputs array of chunks as integers
     '''
-
+    message, leading0s = message_
     message_len = message.bit_length() + leading0s
     if message_len > (1<<64) - 1:
         raise RuntimeError('Input too large')
@@ -37,11 +37,11 @@ def _msg2chunks(message, leading0s):
         raise RuntimeError('Chunk had bad length')
 
     if message_len > 448:
-        chunks = [(message >> (512*i)) & ((1<<512) - 1) for i in range(int(message_len/512))]
+        chunks = [(message >> (512*i)) & ((1<<512) - 1)
+                for i in range(int(message_len/512))]
         chunks.reverse()
     else:
         chunks = [message]
-    print(hex(chunks[0]))
     return chunks
 
 
@@ -77,16 +77,17 @@ def _rol(num, val):
     out = pre + post
     return out
     
-def _sha1hash(message, leading0s):
+def _sha1hash(message):
     '''
     Main loop of the SHA1 hash algorithm
 
-    Takes data and digest bits as input
+    Takes message as input in form (message, leading0s); tuple of ints
+        as provided by hashintf.hash(..)
 
     Returns hash digest as int
     '''
-    chunks = _msg2chunks(message, leading0s)
-    h, k = _init_vars()
+    chunks = _msg2chunks(message)
+    h, K = _init_vars()
     for chunk in chunks:
         xs = h[:]
         w = _words(chunk)
@@ -99,9 +100,10 @@ def _sha1hash(message, leading0s):
                 f = (xs[1] & xs[2]) | (xs[1] & xs[3]) | (xs[2] & xs[3])
             elif i in range(60, 80):
                 f = xs[1] ^ xs[2] ^ xs[3]
-            temp = (_rol(xs[0], 5) + f + xs[4] + k[i//20] + w[i]) % 2**32
+            temp = (_rol(xs[0], 5) + f + xs[4] + K[i//20] + w[i]) % 2**32
             xs = [temp, xs[0], _rol(xs[1], 30), xs[2], xs[3]]
-            # print(str(i).zfill(2) + ': ' + ' '.join([hex(int(i))[2:].zfill(8) for i in xs])) ##
+            # print(str(i).zfill(2) + ': ' + 
+            #       ' '.join([hex(int(i))[2:].zfill(8) for i in xs])) ##
         h = [(h[i] + xs[i]) % 2**32 for i in range(5)]
     digest = sum([h[i] << 32 * (4-i) for i in range(5)])
     return(digest)
