@@ -1,3 +1,8 @@
+# Python_SHA
+# Copyright (C) Tyler Philbrick; 2013
+# Licensed GNU GENERAL PUBLIC LICENSE Version 2
+# See LICENSE.txt for full license
+
 import algorithms.SHA1 as SHA1
 import algorithms.SHA2 as SHA2
 
@@ -13,8 +18,8 @@ def valid_algorithms():
     return _valid_algorithms
 
 def hash(algo, message):
+    algo = algo.upper()
     if type(message) is str:
-        message = repr(message)
         m = message.encode()
         message = 0
         for i in m:
@@ -23,7 +28,10 @@ def hash(algo, message):
         i = 0
         leading0s = 0
         while leading0s == 8*i:
-            leading0s += 8 - m[0].bit_length()
+            try:
+                leading0s += 8 - m[i].bit_length()
+            except IndexError:
+                break
             i += 1
     else:
         raise InputError('Message is not string')
@@ -33,6 +41,6 @@ def hash(algo, message):
             digest = SHA1._sha1hash((message, leading0s))
         elif algo.startswith('SHA'):
             digest = SHA2._sha2hash((message, leading0s), algo)
-        return(digest)
+        return(hex(int.from_bytes(digest, byteorder='big')))
     else:
         raise InputError('Algorithm nonexistant or unimplemented')

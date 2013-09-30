@@ -1,4 +1,7 @@
-
+# Python_SHA
+# Copyright (C) Tyler Philbrick; 2013
+# Licensed GNU GENERAL PUBLIC LICENSE Version 2
+# See LICENSE.txt for full license
 
 def _init_vars():
     '''
@@ -106,4 +109,4 @@ def _sha1hash(message):
             #       ' '.join([hex(int(i))[2:].zfill(8) for i in xs])) ##
         h = [(h[i] + xs[i]) % 2**32 for i in range(5)]
     digest = sum([h[i] << 32 * (4-i) for i in range(5)])
-    return(digest)
+    return(digest.to_bytes(20, byteorder='big'))
