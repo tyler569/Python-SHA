@@ -1,7 +1,8 @@
 # Python_SHA
-# Copyright (C) Tyler Philbrick; 2013
+# Copyright (C) 2013 Tyler Philbrick
 # Licensed GNU GENERAL PUBLIC LICENSE Version 2
 # See LICENSE.txt for full license
+
 
 import algorithms.SHA1 as SHA1
 import algorithms.SHA2 as SHA2
@@ -41,6 +42,6 @@ def hash(algo, message):
             digest = SHA1._sha1hash((message, leading0s))
         elif algo.startswith('SHA'):
             digest = SHA2._sha2hash((message, leading0s), algo)
-        return(hex(int.from_bytes(digest, byteorder='big')))
+        return(hex(int.from_bytes(digest, byteorder='big'))[2:]) ### Output format
     else:
         raise InputError('Algorithm nonexistant or unimplemented')

@@ -1,7 +1,8 @@
 # Python_SHA
-# Copyright (C) Tyler Philbrick; 2013
+# Copyright (C) 2013 Tyler Philbrick
 # Licensed GNU GENERAL PUBLIC LICENSE Version 2
 # See LICENSE.txt for full license
+
 
 def _init_vars():
     '''
