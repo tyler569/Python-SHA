@@ -107,7 +107,7 @@ def _sha1hash(message, debug="no"):
         xs = h[:]
         w = _words(chunk)
         if "word" in debug or "all" in debug:
-            print([hex(w) for i in w])
+            print([hex(i) for i in w])
         for i in range(80):
             if i in range(20):
                 f = (xs[1] & xs[2]) | (~xs[1] & xs[3])

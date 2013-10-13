@@ -138,10 +138,10 @@ def _msg2chunks(message_, chunk_info):
     
 def _words(chunk, ct, mod, C):
     '''
-    Given an SHA chunk and information about what function is being
-    called, function generated the word array corresponding to it
+    Given a SHA2 chunk and information about what function is being
+    called, function generates the word array corresponding to it
 
-    Takes SHA256 chunk as binary string
+    Takes SHA2 chunk as integer
 
     Returns array of (ct) binary words as strings for use in
     SHA calculation
@@ -211,7 +211,7 @@ def _sha2hash(message, algo, debug="no"):
         xs = h[:]
         w = _words(chunk, rounds, mod, C)
         if "word" in debug or "all" in debug:
-            print([hex(w) for i in w])
+            print([hex(i) for i in w])
         for i in range(rounds):
             S1 = (_ror(xs[4], C[1][0], mod)^_ror(xs[4], C[1][1], mod) ^ 
                     _ror(xs[4], C[1][2], mod))

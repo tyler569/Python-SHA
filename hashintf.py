@@ -18,7 +18,7 @@ _valid_algorithms = [
 def valid_algorithms():
     return _valid_algorithms
 
-def hash(algo, message):
+def hash(algo, message, debug="no"):
     algo = algo.upper()
     if type(message) is str:
         m = message.encode()
@@ -39,9 +39,9 @@ def hash(algo, message):
 
     if algo in _valid_algorithms:
         if algo == 'SHA1':
-            digest = SHA1._sha1hash((message, leading0s))
+            digest = SHA1._sha1hash((message, leading0s, debug))
         elif algo.startswith('SHA'):
-            digest = SHA2._sha2hash((message, leading0s), algo)
+            digest = SHA2._sha2hash((message, leading0s), algo, debug)
         return(hex(int.from_bytes(digest, byteorder='big'))[2:]) ### Output format
     else:
         raise InputError('Algorithm nonexistant or unimplemented')
