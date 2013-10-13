@@ -225,8 +225,9 @@ def _sha2hash(message, algo, debug="no"):
             
             xs = [temp] + [xs[i-1] for i in range(1, 8)]
             if "intern" in debug or "all" in debug:
+                bytes = chunk_info[1] // 8
                 print(str(i).zfill(2) + ': ' + 
-                        ' '.join([hex(int(i))[2:].zfill(8) for i in xs]))
+                        ' '.join([hex(int(i))[2:].zfill(bytes) for i in xs]))
         h = [(h[i] + xs[i]) % 2**mod for i in range(8)]
     digest = sum([h[i] << mod * (7-i) for i in range(8)]) >> sh
     return(digest.to_bytes(int(keep / 8), byteorder='big'))
