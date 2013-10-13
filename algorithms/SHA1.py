@@ -81,7 +81,7 @@ def _rol(num, val):
     out = pre + post
     return out
     
-def _sha1hash(message, debug="no"):
+def _hash(message, debug="no"):
     '''
     Main loop of the SHA1 hash algorithm
 

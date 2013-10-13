@@ -12,13 +12,13 @@ def _init_vars(algo):
     Returns tuple with hash variabes, round constnts and
     rotate counts
     '''
-    if algo in ("SHA224", "SHA256"):
-        if algo == "SHA224":
+    if algo in ("sha224", "sha256"):
+        if algo == "sha224":
             hash_vars = [
                 0xc1059ed8, 0x367cd507, 0x3070dd17, 0xf70e5939,
                 0xffc00b31, 0x68581511, 0x64f98fa7, 0xbefa4fa4
             ]
-        elif algo == "SHA256":
+        elif algo == "sha256":
             hash_vars = [
                 0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
                 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19
@@ -40,29 +40,29 @@ def _init_vars(algo):
         ]
         ROTATE_COUNTS = [[2, 13, 22], [6, 11, 25], [7, 18, 3], [17, 19, 10]]
 
-    elif algo in ("SHA384", "SHA512", "SHA512/224", "SHA512/256"):
-        if algo == "SHA384":
+    elif algo in ("sha384", "sha512", "sha512/224", "sha512/256"):
+        if algo == "sha384":
             hash_vars = [
                 0xcbbb9d5dc1059ed8, 0x629a292a367cd507,
                 0x9159015a3070dd17, 0x152fecd8f70e5939,
                 0x67332667ffc00b31, 0x8eb44a8768581511,
                 0xdb0c2e0d64f98fa7, 0x47b5481dbefa4fa4
             ]
-        elif algo == "SHA512":
+        elif algo == "sha512":
             hash_vars = [
                 0x6a09e667f3bcc908, 0xbb67ae8584caa73b,
                 0x3c6ef372fe94f82b, 0xa54ff53a5f1d36f1,
                 0x510e527fade682d1, 0x9b05688c2b3e6c1f,
                 0x1f83d9abfb41bd6b, 0x5be0cd19137e2179
             ]
-        elif algo == "SHA512/224":
+        elif algo == "sha512/224":
             hash_vars = [
                 0x8C3D37C819544DA2, 0x73E1996689DCD4D6,
                 0x1DFAB7AE32FF9C82, 0x679DD514582F9FCF,
                 0x0F6D2B697BD44DA8, 0x77E36F7304C48942,
                 0x3F9D85A86A1D36C8, 0x1112E6AD91D692A1
             ]
-        elif algo == "SHA512/256":
+        elif algo == "sha512/256":
             hash_vars = [
                 0x22312194FC2BF72C, 0x9F555FA3C84C64C2,
                 0x2393B86B6F53B151, 0x963877195940EABD,
@@ -171,7 +171,7 @@ def _ror(num, val, mod):
     post = num >> val
     return pre + post
     
-def _sha2hash(message, algo, debug="no"):
+def _hash(message, algo, debug="no"):
     '''
     Main loop of the SHA2 hash algorithm
 
@@ -192,12 +192,12 @@ def _sha2hash(message, algo, debug="no"):
         intern -- prints the internal states of th function
     '''
     conversion_codes = {
-        'SHA224': (256, 224, 64, 32, (512, 64)),
-        'SHA256': (256, 256, 64, 32, (512, 64)),
-        'SHA384': (512, 384, 80, 64, (1024, 128)),
-        'SHA512': (512, 512, 80, 64, (1024, 128)),
-        'SHA512/224': (512, 224, 80, 64, (1024, 128)),
-        'SHA512/256': (512, 256, 80, 64, (1024, 128))
+        'sha224': (256, 224, 64, 32, (512, 64)),
+        'sha256': (256, 256, 64, 32, (512, 64)),
+        'sha384': (512, 384, 80, 64, (1024, 128)),
+        'sha512': (512, 512, 80, 64, (1024, 128)),
+        'sha512/224': (512, 224, 80, 64, (1024, 128)),
+        'sha512/256': (512, 256, 80, 64, (1024, 128))
     }
 
     bits, keep, rounds, mod, chunk_info = conversion_codes[algo]

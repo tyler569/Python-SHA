@@ -18,30 +18,49 @@ _valid_algorithms = [
 def valid_algorithms():
     return _valid_algorithms
 
-def hash(algo, message, debug="no"):
-    algo = algo.upper()
-    if type(message) is str:
-        m = message.encode()
-        message = 0
-        for i in m:
-            message <<= 8
-            message += i
-        i = 0
-        leading0s = 0
-        while leading0s == 8*i:
-            try:
-                leading0s += 8 - m[i].bit_length()
-            except IndexError:
-                break
-            i += 1
-    else:
-        raise InputError('Message is not string')
+def _hash_prep(algo, message):
+    assert type(message) is str
+    message_enc = message.encode()
+    message_int = 0
+    for i in message_enc:
+        message_int <<= 8
+        message_int += i
+    i = 0
+    leading0s = 0
+    while leading0s == 8*i:
+        try:
+            leading0s += 8 - message_enc[i].bit_length()
+        except IndexError:
+            break
+        i += 1
+    return message_int, leading0s
 
-    if algo in _valid_algorithms:
-        if algo == 'SHA1':
-            digest = SHA1._sha1hash((message, leading0s, debug))
-        elif algo.startswith('SHA'):
-            digest = SHA2._sha2hash((message, leading0s), algo, debug)
-        return(hex(int.from_bytes(digest, byteorder='big'))[2:]) ### Output format
-    else:
-        raise InputError('Algorithm nonexistant or unimplemented')
+
+def sha1(message, debug="no"):
+    hash_inpt = _hash_prep(message)
+    SHA1._hash(message, debug)
+
+def sha224(message, debug="no"):
+    hash_inpt = _hash_prep(message)
+    SHA2._hash(message, "sha224", debug)
+    
+def sha256(message, debug="no"):
+    hash_inpt = _hash_prep(message)
+    SHA2._hash(message, "sha256", debug)
+    
+def sha384(message, debug="no"):
+    hash_inpt = _hash_prep(message)
+    SHA2._hash(message, "sha384", debug)
+    
+def sha512(message, debug="no"):
+    hash_inpt = _hash_prep(message)
+    SHA2._hash(message, "sha512", debug)
+    
+def sha512_224(message, debug="no"):
+    hash_inpt = _hash_prep(message)
+    SHA2._hash(message, "sha512/224", debug)
+
+def sha512_256(message, debug="no"):
+    hash_inpt = _hash_prep(message)
+    SHA2._hash(message, "sha512/256", debug)
+    
