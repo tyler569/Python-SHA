@@ -81,7 +81,7 @@ def _rol(num, val):
     out = pre + post
     return out
     
-def _sha1hash(message):
+def _sha1hash(message, debug="no"):
     '''
     Main loop of the SHA1 hash algorithm
 
@@ -89,12 +89,25 @@ def _sha1hash(message):
         as provided by hashintf.hash(..)
 
     Returns hash digest as int
+
+    The "debug" input controls whether/what debug information is printed
+    to stdout.  These values can be passed in as strings or - for
+    multipe - as a tuple.  The possible states are:
+        no -- Default value, no debug information printed
+        all -- all following information printed
+        chunk -- prints the chunks before they are made into words
+        word -- prints the words right before hashing starts
+        intern -- prints the internal states of th function
     '''
     chunks = _msg2chunks(message)
+    if "chunk" in debug or "all" in debug:
+        print([hex(i) for i in chunks])
     h, K = _init_vars()
     for chunk in chunks:
         xs = h[:]
         w = _words(chunk)
+        if "word" in debug or "all" in debug:
+            print([hex(w) for i in w])
         for i in range(80):
             if i in range(20):
                 f = (xs[1] & xs[2]) | (~xs[1] & xs[3])
@@ -106,8 +119,9 @@ def _sha1hash(message):
                 f = xs[1] ^ xs[2] ^ xs[3]
             temp = (_rol(xs[0], 5) + f + xs[4] + K[i//20] + w[i]) % 2**32
             xs = [temp, xs[0], _rol(xs[1], 30), xs[2], xs[3]]
-            # print(str(i).zfill(2) + ': ' + 
-            #       ' '.join([hex(int(i))[2:].zfill(8) for i in xs])) ##
+            if "intern" in debug or "all" in debug:
+                print(str(i).zfill(2) + ': ' + 
+                        ' '.join([hex(int(i))[2:].zfill(8) for i in xs]))
         h = [(h[i] + xs[i]) % 2**32 for i in range(5)]
     digest = sum([h[i] << 32 * (4-i) for i in range(5)])
     return(digest.to_bytes(20, byteorder='big'))

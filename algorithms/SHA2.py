@@ -9,7 +9,8 @@ def _init_vars(algo):
 
     takes algorithm as input
 
-    Returns tuple with hash variabes, round constnts and rotate counts
+    Returns tuple with hash variabes, round constnts and
+    rotate counts
     '''
     if algo in ("SHA224", "SHA256"):
         if algo == "SHA224":
@@ -111,8 +112,8 @@ def _msg2chunks(message_, chunk_info):
     Acceptable algorithms:
         SHA224, SHA256, SHA384, SHA512, SHA512/224, SHA512/256
 
-    Returns array of SHA2 chunks corresponding to input data and function
-    as binary string
+    Returns array of SHA2 chunks corresponding to input data
+    and function as binary string
     '''
     chunk_len, len_len = chunk_info
     message, leading0s = message_
@@ -137,12 +138,13 @@ def _msg2chunks(message_, chunk_info):
     
 def _words(chunk, ct, mod, C):
     '''
-    Given an SHA chunk and information about what function is being called,
-    function generated the word array corresponding to it
+    Given an SHA chunk and information about what function is being
+    called, function generated the word array corresponding to it
 
     Takes SHA256 chunk as binary string
 
-    Returns array of (ct) binary words as strings for use in SHA calculation
+    Returns array of (ct) binary words as strings for use in
+    SHA calculation
     '''
     w = [0 for i in range(ct)]
     for i in range(16):
@@ -160,7 +162,8 @@ def _ror(num, val, mod):
     '''
     Binary right rotate
 
-    Takes number to rotate (num) as int and places to rotate (val) as int
+    Takes number to rotate (num) as int and places to
+    rotate (val) as int
 
     Returns int - rotated number
     '''
@@ -168,15 +171,26 @@ def _ror(num, val, mod):
     post = num >> val
     return pre + post
     
-def _sha2hash(message_, algo):
+def _sha2hash(message, algo, debug="no"):
     '''
     Main loop of the SHA2 hash algorithm
 
-    Takes data and digest bits as input, raises error if algo not in SHA2
-        message as (message, leading0s) as provided by hashintf.hash()
+    Takes data and digest bits as input, raises error
+    if algo not in SHA2
+
+    message as (message, leading0s) as provided by hashintf.hash()
 
     Returns hash digest as int
-    '''    
+
+    The "debug" input controls whether/what debug information is printed
+    to stdout.  These values can be passed in as strings or - for
+    multipe - as a tuple.  The possible states are:
+        no -- Default value, no debug information printed
+        all -- all following information printed
+        chunk -- prints the chunks before they are made into words
+        word -- prints the words right before hashing starts
+        intern -- prints the internal states of th function
+    '''
     conversion_codes = {
         'SHA224': (256, 224, 64, 32, (512, 64)),
         'SHA256': (256, 256, 64, 32, (512, 64)),
@@ -189,11 +203,15 @@ def _sha2hash(message_, algo):
     bits, keep, rounds, mod, chunk_info = conversion_codes[algo]
     sh = bits - keep
 
-    chunks = _msg2chunks(message_, chunk_info)
+    chunks = _msg2chunks(message, chunk_info)
+    if "chunk" in debug or "all" in debug:
+        print([hex(i) for i in chunks])
     h, K, C = _init_vars(algo)
     for chunk in chunks:
         xs = h[:]
         w = _words(chunk, rounds, mod, C)
+        if "word" in debug or "all" in debug:
+            print([hex(w) for i in w])
         for i in range(rounds):
             S1 = (_ror(xs[4], C[1][0], mod)^_ror(xs[4], C[1][1], mod) ^ 
                     _ror(xs[4], C[1][2], mod))
@@ -206,8 +224,9 @@ def _sha2hash(message_, algo):
             temp = (temp + S0 + maj) % 2**mod
             
             xs = [temp] + [xs[i-1] for i in range(1, 8)]
-            # print(str(i).zfill(2) + ': ' + 
-            #         ' '.join([hex(int(i))[2:].zfill(8) for i in xs])) ##
+            if "intern" in debug or "all" in debug:
+                print(str(i).zfill(2) + ': ' + 
+                        ' '.join([hex(int(i))[2:].zfill(8) for i in xs]))
         h = [(h[i] + xs[i]) % 2**mod for i in range(8)]
     digest = sum([h[i] << mod * (7-i) for i in range(8)]) >> sh
     return(digest.to_bytes(int(keep / 8), byteorder='big'))
